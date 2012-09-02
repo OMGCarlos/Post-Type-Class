@@ -3,7 +3,7 @@
 * @author 	Carlos Ramos https://twitter.com/#!/omgcarlos
 * @link  	(@OMGCarlos,  	https://twitter.com/#!/omgcarlos)
 * @link  	(Press12, 		https://press12.com)
-* @version  1.1.0
+* @version  1.2.0
 *
 * @package  WordPress
 * @since  	1.0.0
@@ -280,7 +280,7 @@
 								echo '<tr>';
 									echo '<td><label for="' . sanitize_title($item['label']) .'">' . $item['label'] . '</label></td>';
 									echo '<td>';
-										echo '<input type="' . (isset($item['type']) ? $item['type'] : 'text')  . '" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" value="' . get_post_meta($post->ID, $item['meta'], true) . '">';
+										echo '<input type="' . (isset($item['type']) ? $item['type'] : 'text')  . '" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" value="' . get_post_meta($post->ID, $item['meta'], true) . '" ' . ( isset( $item['attributes'] ) ? $item['attributes'] : '') . '>';
 										if( isset( $item['caption'] ) ) echo '<br><span style="font-size: .75em;">' . $item['caption'] . '</span>';
 									echo '</td>';
 								echo '</tr>';
