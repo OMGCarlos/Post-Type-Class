@@ -1,138 +1,16 @@
-<?php /*================================================================================
-| post-type-class.php
-|
-| Created by: 	Carlos Ramos
-| Twitter: 		@OMGCarlos https://twitter.com/#!/omgcarlos
-| Portfolio: 	http://press12.com
-| @version 		1.0.0
-|
-| @package  	WordPress
-| @since  		1.0.0
-|
-
-Post Type Class
-===============
-This class allows you to build WordPress Custom Post Types (CPT's) in as little 
-as 2 lines of code! The class features the following:
-
-* Create CPT's
-* Create and populate meta boxes
-* Easy debugging
-* Automatic Nonce security
-
-*************************************************************
-
-## Creating a New CPT ##
-
-    $obj = new PostType($cptName, $cptArgs);
-
-**`$cptName`**    _(STRING)_    The CPT slug.  
-**`$cptArgs`**    _(Array)_     CPT arguments as defined by [`register_post_type()`](http://codex.wordpress.org/Function_Reference/register_post_type)
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-**Input:**
-    
-    $homeSlideshow = new PostType(
-        'home-slideshow',
-        array(
-            'label'        => 'Home Slideshow',
-            'public'       => true,
-            'show_in_menu' => 25,
-            'supports'     => array('title', 'editor', 'thumbnail')
-        )
-    )
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    
-**Output:**
-Creates a custom post type named `home-slideshow` and positions it's menu 
-underneath Comments. It is now fully functional and allows you to edit its 
-Title, content, and thumbnail!
-
-*************************************************************
-
-## Adding Meta Boxes ##
-
-    $obj->meta_box($metaLabel, $metaForm);
-
-**`$metaLbael`**    _(STRING)_ Meta box label. May include basic HTML styling tags.
-**`$metaForm`**    _(ARRAY)_ List of label/input elements to create.
-
-**`$metaForm`** should be in the form:
-
-    'Label', 'Post Meta Key',
-    'Label', 'Post Meta Key',
-    'Label', 'Post Meta Key',
-    ...
-
-Where `Label` is the labels text, and `Post Meta Key` is the key used in 
-[`get_post_meta()`](http://codex.wordpress.org/Function_Reference/get_post_meta)
-
-When the `add_meta_box` call is defined, its arguments are generated as follows:
-
-    $id         = sanitize_title( $obj->cptArgs->label );
-    $title      = $metaLabel
-    $callback   = $this->meta_box_cb (a unique closure)
-    $post_type  = $obj->cptName
-    $context    = DEFAULT
-    $priority   = DEFAULT
-    $callback_args = NONE, the closure automatically pulls arguments
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-**Input:**
-    
-    $homeSlideshow->metabox(
-        'Home Slideshow Properties',
-        array(
-            'Slide "Read More" label', '_slideReadMore',
-            'Slide links to', '_slideLinksTo'
-        )
-    )
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    
-**Output:**
-Creates a meta box labeled "Home Slide Properties", with two sets of labels 
-_(Slide "Read More" label and "Slide links to)_ and text input boxes 
-_(#slide-read-more-label and #slide-links-to)_. It also saves two hidden custom 
-fields.
-
-
-*************************************************************
-
-## Options ##
-Below are a list of additional options you can set and their default values:
-
-    $obj->nonce->name    = $this->cptName . '_nonce';
-    $obj->nonce->action  = $this->cptName . '_action';
-
-    $obj->cap            = 'edit_page';
-
-
-**`$obj->nonce->name`** and **`obj->nonce->action`** correspond to the `$name` 
-and `$action` arguments in 
-[`wp_nonce_field`](http://codex.wordpress.org/Function_Reference/wp_nonce_field) 
-which is checked on save. Change these if you'd you need to.
-
-**`$obj->cap`** is used to set the capability requirements for saving the page, 
-which defaults to 'edit_page'. If your CPT requires admin acces simply do 
-something as follows:
-
-    $homeSlideshow->cap = 'manage_options';
-
-*************************************************************
-
-TO DO
-=====
-1. Trap illegal $cptName names
-2. Add aliases for function names. Ex) `$obj->meta_box() === $obj->mb()`
-3. Define basic HTML tags for `$obj->meta_box()`
-4. Add granularity to `$obj->meta_box()`
-|===============================================================================*/
-
-
+<?php
+/**
+* @author 	Carlos Ramos https://twitter.com/#!/omgcarlos
+* @link  	(@OMGCarlos,  	https://twitter.com/#!/omgcarlos)
+* @link  	(Press12, 		https://press12.com)
+* @version  1.0.0
+*
+* @package  WordPress
+* @since  	1.0.0
+*/
+	/**
+	 * The PostType Class
+	 */
 	class PostType{
 		/*================================================================================
 		| Setup Properties
@@ -140,26 +18,46 @@ TO DO
 		/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 		| User Defined
 		- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+		/** @var string CPT Slug */
 		public $cptName = 'NULL';
+		/** @var array 	register_post_type arguments */
 		public $cptArgs = 'NULL';
-		public $metaName = '';
+		/** @var string Meta box caption */
 		public $metaLabel = '';
+		/**
+		 * Label/Post meta pair
+		 *
+		 * Should be in the form:
+		 * 'label', 'meta',
+		 * 'label', 'meta',
+		 * ...
+		 * 
+		 * @var array
+		 */
 		public $metaForm = array();
+		/** @var array wp_nonce_field arguments */
 		public $nonce = array(
 			'name'		=> '',
 			'action'	=> ''
 		);
+		/** @var string Capability required for saving post */
 		public $cap = 'edit_page';
 
 		/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 		| Control
 		- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+		/** @var array List of metaboxes to display */
 		public $metaBoxes = array();
 
 
-		/*================================================================================
-		| Constructor
-		================================================================================*/
+		/**
+		 * Initializes the object
+		 * 
+		 * @param string $cptName CPT slug
+		 * @param array $cptArgs register_post_type arguments
+		 *
+		 * @return boolean true if success, false if not
+		 */
 		function __construct($cptName = 'NULL', $cptArgs = 'NULL'){
 			/*================================================================================
 			| Trap errors
@@ -197,28 +95,51 @@ TO DO
 			$this->cptArgs = $cptArgs;
 			$this->nonce['name'] = $cptName . '_name';
 			$this->nonce['action'] = $cptName . '_action';
+
+			return true;
 		}
 
-		/*================================================================================
-		| Register Actions/hooks
-		================================================================================*/
+		/**
+		 * Create the Post Type. This *MUST* be called in order for the post type to show
+		 * and *MUST* be the last method called on this object, or duplicates may occur!
+		 * 
+		 * @return true
+		 */
 		function create(){
 			add_action( 'init', array(&$this, 'register'));
 			add_action( 'add_meta_boxes', array(&$this, 'add_meta_box'));
 			add_action( 'save_post', array(&$this, 'save'));
+
+			return true;
 		}
 
 		/*================================================================================
 		| Create the post type
 		================================================================================*/
+		/**
+		 * Register the post type
+		 * 
+		 * @return true
+		 */
 		function register(){
 			register_post_type($this->cptName, $this->cptArgs);
+
+			return true;
 		}
 
 		/*================================================================================
 		| Save the post type
 		================================================================================*/
+		/**
+		 * Saves the post type
+		 * 
+		 * @param  int $postID $post->ID
+		 * @return NULL. Called from within a closure, so no point in returning anything.
+		 */
 		function save($postID){
+			/*================================================================================
+			| Security
+			================================================================================*/
 			if( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
 			if( !current_user_can($this->cap, $postID)) return;
 			if( !isset($_POST[$this->nonce['name']]) || !wp_verify_nonce( $_POST[$this->nonce['name']], $this->nonce['action'])) return;
@@ -230,8 +151,13 @@ TO DO
 				/*================================================================================
 				| Loop through each input and add the post meta
 				================================================================================*/
-				$flip = false; 	//Check out $obj->add_meta_box() for more info on this var
-				$label = '';	//Grab the label
+				/**
+				 * @see $obj->add_meta_box()
+				 * @var boolean
+				 */
+				$flip = false;
+				/** @var string Grab the label, which is always one step before the post_meta */
+				$label = '';
 				foreach($box['form'] as $item){
 					/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 					| Grab the Label
@@ -249,9 +175,13 @@ TO DO
 		}
 
 
-		/*================================================================================
-		| Begin the metabox-creation process
-		================================================================================*/
+		/**
+		 * Begin the metabox creation process
+		 * 
+		 * @param  string $metaLabel See properties above
+		 * @param  array $metaForm  See properties above
+		 * @return bool true if success, false if not. Note that it will throw an error as well on false
+		 */
 		function meta_box( $metaLabel = 'NULL', $metaForm = 'NULL' ){
 			/*================================================================================
 			| Trap errors
@@ -292,12 +222,14 @@ TO DO
 					'form'	=> $metaForm 
 				)
 			);
+
+			return true;
 		}
 
 
-		/*================================================================================
-		| Add the Meta Boxes
-		================================================================================*/
+		/**
+		 * Actually add the meta box to the page
+		 */
 		function add_meta_box(){
 			foreach($this->metaBoxes as $box){
 				$obj = $this;
@@ -306,24 +238,31 @@ TO DO
 					'meta-box-' . sanitize_title( $box['label'] ),
 					$box['label'],
 
-					/*================================================================================
-					| Now, Create the form
-					================================================================================*/
+					/**
+					 * Closure. These need to be generated on the fly.
+					 */
 					function() use($obj, $box){
-						/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-						| Oh the $flip variable.
-						|
-						| Aight so this is how this shizznet works: 
-						| $flip starts off as false and flips boolean at the end of every step
-						| Therefore, if !$flip then $item = label
-						| else $item = post meta
-						|
-						| Remember that the form elements are created in meta_box() in pairs. Hence $flip
-						- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 						global $post;
+						/**
+						 * Oh the $flip variable.
+						 *
+						 * Aight so this is how this shizznet works: 
+						 * 
+						 * $flip starts off as false and flips boolean at the end of every step
+						 * Therefore, if !$flip then $item = label
+						 * else $item = post meta
+						 * 
+						 * Remember that the form elements are created in meta_box() in pairs. Hence $flip
+						 * 
+						 * @var boolean
+						 */
 						$flip = false;
-						$label = '';	//Grab the label, ie, grab $box['form'] when $flip = false (every other time, on the odd)
+						/** @var string Grab the label, ie, grab $box['form'] when $flip = false (every other time, on the odd) */
+						$label = '';
 
+						/*================================================================================
+						| Echo the metabox to the page
+						================================================================================*/
 						echo '<table>';
 							wp_nonce_field($obj->nonce['action'], $obj->nonce['name']);
 
