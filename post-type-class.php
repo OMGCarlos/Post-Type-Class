@@ -278,7 +278,7 @@
 								} else {
 									echo '<tr>';
 										echo '<td><label for="' . sanitize_title( $label ) . '">' . $label . '</label></td>';
-										echo '<td><input id="' . sanitize_title( $label ) . '" name="' . sanitize_title( $label ) . '" value="' . get_post_meta($post->ID, $item, true) . '"></td>';
+										echo '<td><input type="text" id="' . sanitize_title( $label ) . '" name="' . sanitize_title( $label ) . '" value="' . get_post_meta($post->ID, $item, true) . '"></td>';
 									echo '</tr>';
 								}
 							}
