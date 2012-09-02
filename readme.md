@@ -79,17 +79,26 @@ When the `add_meta_box` call is defined, its arguments are generated as follows:
         'Home Slideshow Properties',
         array(
             array(
-                
+                'label'     => 'Read More: ',
+                'meta'      => '_slideReadMore',
+                'caption'   => 'text for the read more button'
+            ),
+            array(
+                'label'     => 'Slide Links To: ',
+                'meta'      => '_slideURL'
+            ),
+            array(
+                'label'     => 'Extra text',
+                'meta'      => '_slideExtra',
+                'type'      => 'textarea'
             )
-            'Slide "Read More" label', '_slideReadMore',
-            'Slide links to', '_slideLinksTo'
         )
     )
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     
 **Output:**
-Creates a meta box labeled "Home Slide Properties", with two sets of labels _(Slide "Read More" label and "Slide links to)_ and text input boxes _(#slide-read-more-label and #slide-links-to)_. It also saves two hidden custom fields.
+Creates a meta box labeled "Home Slide Properties", with three sets of labels _("Read More" (with caption), "Slide Links To", and a textarea labeled "Extra Text")_ and 2 text input boxes plus 1 textarea _(#slide-read-more, #slide-links-to, #slide-extra-text)_.
 
 
 *************************************************************
@@ -117,3 +126,8 @@ TO DO
 2. Add aliases for function names. Ex) `$obj->meta_box() === $obj->mb()`
 3. Define basic HTML tags for `$obj->meta_box()`
 4. Add granularity to `$obj->meta_box()`
+5. Add default values for input fields
+6. Turn off debugging for optimization
+7. Add support for textareas and other non INPUT elements
+8. Allow for get_post_type array
+9. Allow for styling

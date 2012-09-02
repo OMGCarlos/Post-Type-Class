@@ -3,7 +3,7 @@
 * @author 	Carlos Ramos https://twitter.com/#!/omgcarlos
 * @link  	(@OMGCarlos,  	https://twitter.com/#!/omgcarlos)
 * @link  	(Press12, 		https://press12.com)
-* @version  1.0.2
+* @version  1.1.0
 *
 * @package  WordPress
 * @since  	1.0.0
@@ -22,19 +22,6 @@
 		public $cptName = 'NULL';
 		/** @var array 	register_post_type arguments */
 		public $cptArgs = 'NULL';
-		/** @var string Meta box caption */
-		public $metaLabel = '';
-		/**
-		 * Label/Post meta pair
-		 *
-		 * Should be in the form:
-		 * 'label', 'meta',
-		 * 'label', 'meta',
-		 * ...
-		 * 
-		 * @var array
-		 */
-		public $metaForm = array();
 		/** @var array wp_nonce_field arguments */
 		public $nonce = array(
 			'name'		=> '',
@@ -46,7 +33,24 @@
 		/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 		| Control
 		- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-		/** @var array List of metaboxes to display */
+		/** @var string Meta box caption */
+		public $metaLabel = '';
+		/**
+		 * List of form elements
+		 *
+		 * array(
+		 * 		array(
+		 * 			'label'		=> STRING,
+		 * 			'meta'		=> STRING,
+		 * 			['type'		=> STRING = 'text'],
+		 * 			['caption'  => STRING]
+		 * 		)
+		 * )
+		 * 
+		 * @var array
+		 */
+		public $metaForm = array();
+		/** @var array Collection of $metaLabel and $metaForms */
 		public $metaBoxes = array();
 
 
@@ -151,25 +155,8 @@
 				/*================================================================================
 				| Loop through each input and add the post meta
 				================================================================================*/
-				/**
-				 * @see $obj->add_meta_box()
-				 * @var boolean
-				 */
-				$flip = false;
-				/** @var string Grab the label, which is always one step before the post_meta */
-				$label = '';
 				foreach($box['form'] as $item){
-					/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-					| Grab the Label
-					- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-					if( $flip = !$flip ) {
-						$label = $item;
-					/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-					| Create the label/input
-					- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-					} else {
-						update_post_meta( $postID, $item, $_POST[ sanitize_title( $label ) ] );
-					}
+					update_post_meta( $postID, $item['meta'], $_POST[ sanitize_title( $item['label'] ) ] );
 				}
 			}
 		}
@@ -213,6 +200,40 @@
 			if($error) return false;
 
 			/*================================================================================
+			| Make sure the form contains elements which contain a 'label' nad 'meta' value
+			| If they don't exist, remove the object.
+			================================================================================*/
+			foreach($metaForm as $key => $item){
+				/*================================================================================
+				| Test for missing elements
+				================================================================================*/
+				if( !isset($item['label'] ) ) {
+					trigger_error( __('Missing "label" in $obj->meta_box() call. Form element not created.'), E_USER_WARNING );
+					unset($metaForm[$key]);
+					continue;
+				}
+				if( !isset($item['meta'] ) ) {
+					trigger_error( __('Missing "meta" in $obj->meta_box() call. Form element not created.'), E_USER_WARNING );
+					unset($metaForm[$key]);
+					continue;
+				}
+				/*================================================================================
+				| Test for wrong element types
+				================================================================================*/
+				if( gettype($item['label']) !== 'string' ) {
+					trigger_error( __('"label" in $obj->meta_box() is not a string. Form element not created.'), E_USER_WARNING );
+					unset($metaForm[$key]);
+					continue;
+				}
+				if( gettype($item['meta']) !== 'string' ) {
+					trigger_error( __('"meta" in $obj->meta_box() is not a string. Form element not created.'), E_USER_WARNING );
+					unset($metaForm[$key]);
+					continue;
+				}
+			}
+
+
+			/*================================================================================
 			| Add new metabox to the metabox array
 			================================================================================*/
 			array_push(
@@ -232,33 +253,22 @@
 		 */
 		function add_meta_box(){
 			foreach($this->metaBoxes as $box){
+				/** @var object Will pass $this into the form creation closure */
 				$obj = $this;
 
 				add_meta_box(
+					/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+					| Setup the metabox id and label
+					- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 					'meta-box-' . sanitize_title( $box['label'] ),
 					$box['label'],
 
-					/**
-					 * Closure. These need to be generated on the fly.
-					 */
+					/*================================================================================
+					| Create the form elemetns
+					| This needs to be a closure so we can pass unique items to it
+					================================================================================*/
 					function() use($obj, $box){
 						global $post;
-						/**
-						 * Oh the $flip variable.
-						 *
-						 * Aight so this is how this shizznet works: 
-						 * 
-						 * $flip starts off as false and flips boolean at the end of every step
-						 * Therefore, if !$flip then $item = label
-						 * else $item = post meta
-						 * 
-						 * Remember that the form elements are created in meta_box() in pairs. Hence $flip
-						 * 
-						 * @var boolean
-						 */
-						$flip = false;
-						/** @var string Grab the label, ie, grab $box['form'] when $flip = false (every other time, on the odd) */
-						$label = '';
 
 						/*================================================================================
 						| Echo the metabox to the page
@@ -267,23 +277,19 @@
 							wp_nonce_field($obj->nonce['action'], $obj->nonce['name']);
 
 							foreach($box['form'] as $item) {
-								/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-								| Grab the Label
-								- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-								if( $flip = !$flip ) {
-									$label = $item;
-								/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-								| Create the label/input
-								- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-								} else {
-									echo '<tr>';
-										echo '<td><label for="' . sanitize_title( $label ) . '">' . $label . '</label></td>';
-										echo '<td><input type="text" id="' . sanitize_title( $label ) . '" name="' . sanitize_title( $label ) . '" value="' . get_post_meta($post->ID, $item, true) . '"></td>';
-									echo '</tr>';
-								}
+								echo '<tr>';
+									echo '<td><label for="' . sanitize_title($item['label']) .'">' . $item['label'] . '</label></td>';
+									echo '<td>';
+										echo '<input type="' . (isset($item['type']) ? $item['type'] : 'text')  . '" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" value="' . get_post_meta($post->ID, $item['meta'], true) . '">';
+										if( isset( $item['caption'] ) ) echo '<br><span style="font-size: .75em;">' . $item['caption'] . '</span>';
+									echo '</td>';
+								echo '</tr>';
 							}
 						echo '</table>';
 					},
+					/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+					| The CPT to affect
+					- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 					$this->cptName	//The CPT
 				);
 			}
