@@ -12,9 +12,12 @@ This class allows you to build WordPress Custom Post Types (CPT's) in as little 
 ## Creating a New CPT ##
 
     $obj = new PostType($cptName, $cptArgs);
+    $obj->create();
 
 **`$cptName`**    _(STRING)_    The CPT slug.  
 **`$cptArgs`**    _(Array)_     CPT arguments as defined by [`register_post_type()`](http://codex.wordpress.org/Function_Reference/register_post_type)
+
+**NOTE:** Once you call the `create()` method, the $obj gets destroyed. This is to prevent any further manipulation of the object, which could create duplicate CPT's.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -39,19 +42,24 @@ Creates a custom post type named `home-slideshow` and positions it's menu undern
 
 ## Adding Meta Boxes ##
 
-    $obj->meta_box($metaLabel, $metaForm);
+    $obj->meta_box(array($metaLabel, $metaForm));
 
-**`$metaLbael`**    _(STRING)_ Meta box label. May include basic HTML styling tags.
-**`$metaForm`**    _(ARRAY)_ List of label/input elements to create.
+**`$metaLabel`** _(STRING)_    Meta box label. May include basic HTML styling tags.  
+**`$metaForm`**  _(ARRAY)_     Setup as follows
 
-**`$metaForm`** should be in the form:
+    array(
+        'label'     => STRING,
+        'meta'      => STRING,
+        ['type'     => STRING = "text",]
+        ['caption'  => STRING]
+    )
 
-    'Label', 'Post Meta Key',
-    'Label', 'Post Meta Key',
-    'Label', 'Post Meta Key',
-    ...
+**`label`** Label text. The `for` attribute and input `id` is `sanitize_title(` **`label`** )  
+**`meta`**  The key used in [`get_post_meta()`](http://codex.wordpress.org/Function_Reference/get_post_meta).  
+**`type`**  The input type. ( `DEFAULT = "text"` )  
+**`caption`**  The input caption, which is displayed underneath the input box.  
 
-Where `Label` is the labels text, and `Post Meta Key` is the key used in [`get_post_meta()`](http://codex.wordpress.org/Function_Reference/get_post_meta).
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 When the `add_meta_box` call is defined, its arguments are generated as follows:
 
@@ -70,6 +78,9 @@ When the `add_meta_box` call is defined, its arguments are generated as follows:
     $homeSlideshow->metabox(
         'Home Slideshow Properties',
         array(
+            array(
+                
+            )
             'Slide "Read More" label', '_slideReadMore',
             'Slide links to', '_slideLinksTo'
         )

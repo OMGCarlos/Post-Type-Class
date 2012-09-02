@@ -3,7 +3,7 @@
 * @author 	Carlos Ramos https://twitter.com/#!/omgcarlos
 * @link  	(@OMGCarlos,  	https://twitter.com/#!/omgcarlos)
 * @link  	(Press12, 		https://press12.com)
-* @version  1.0.0
+* @version  1.0.2
 *
 * @package  WordPress
 * @since  	1.0.0
