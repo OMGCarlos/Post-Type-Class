@@ -156,7 +156,12 @@
 				| Loop through each input and add the post meta
 				================================================================================*/
 				foreach($box['form'] as $item){
-					update_post_meta( $postID, $item['meta'], $_POST[ sanitize_title( $item['label'] ) ] );
+					//If it has a defined meta value
+					if( isset( $_POST[ sanitize_title( $item['label'] ) ] ) ) 
+						update_post_meta( $postID, $item['meta'], $_POST[ sanitize_title( $item['label'] ) ] );
+					//Else, its a checkbox
+					else 
+						update_post_meta( $postID, $item['meta'], '' );
 				}
 			}
 		}
@@ -280,7 +285,19 @@
 								echo '<tr>';
 									echo '<td><label for="' . sanitize_title($item['label']) .'">' . $item['label'] . '</label></td>';
 									echo '<td>';
-										echo '<input type="' . (isset($item['type']) ? $item['type'] : 'text')  . '" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" value="' . get_post_meta($post->ID, $item['meta'], true) . '" ' . ( isset( $item['attributes'] ) ? $item['attributes'] : '') . '>';
+										/*================================================================================
+										| Create the input element based on input type
+										================================================================================*/
+										switch((isset($item['type']) ? $item['type'] : 'text')){
+											case 'checkbox': {
+												echo '<input type="checkbox" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" ' . (get_post_meta($post->ID, $item['meta'], true) == 'on' ? 'checked' : ' ' ) . ( isset( $item['attributes'] ) ? $item['attributes'] : '') . '>';
+												break;
+											}
+											default: {
+												echo '<input type="' . (isset($item['type']) ? $item['type'] : 'text')  . '" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" value="' . get_post_meta($post->ID, $item['meta'], true) . '" ' . ( isset( $item['attributes'] ) ? $item['attributes'] : '') . '>';
+												break;
+											}
+										}
 										if( isset( $item['caption'] ) ) echo '<br><span style="font-size: .75em;">' . $item['caption'] . '</span>';
 									echo '</td>';
 								echo '</tr>';

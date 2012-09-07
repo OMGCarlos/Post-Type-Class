@@ -133,11 +133,12 @@ TO DO
 7. Add support for textareas and other non INPUT elements
 8. Allow for get_post_type array
 9. Allow for styling
+10. Set multiple default CPT settings
 
 *************************************************************
 
 CHANGE LOG
 ==========
-**1.2.0** - Introduced attributes to $obj->meta_box() inputs
-**1.1.0** - Finer control over $obj->meta_box()
+**1.2.0** - Introduced attributes to $obj->meta_box() inputs  
+**1.1.0** - Finer control over $obj->meta_box(), including addition of input captions
 **1.0.0** - Initial release, can create post types with meta boxes which contain input[type="text"] elements
