@@ -3,7 +3,7 @@
 * @author 	Carlos Ramos https://twitter.com/#!/omgcarlos
 * @link  	(@OMGCarlos,  	https://twitter.com/#!/omgcarlos)
 * @link  	(Press12, 		https://press12.com)
-* @version  1.2.0
+* @version  1.3.1
 *
 * @package  WordPress
 * @since  	1.0.0
@@ -278,23 +278,23 @@
 						/*================================================================================
 						| Echo the metabox to the page
 						================================================================================*/
-						echo '<table>';
+						echo '<table style="width:100%">';
 							wp_nonce_field($obj->nonce['action'], $obj->nonce['name']);
 
 							foreach($box['form'] as $item) {
 								echo '<tr>';
-									echo '<td><label for="' . sanitize_title($item['label']) .'">' . $item['label'] . '</label></td>';
+									echo '<td style="width:150px"><label style="display: block; width: 100%" for="' . sanitize_title($item['label']) .'">' . $item['label'] . '</label></td>';
 									echo '<td>';
 										/*================================================================================
 										| Create the input element based on input type
 										================================================================================*/
 										switch((isset($item['type']) ? $item['type'] : 'text')){
 											case 'checkbox': {
-												echo '<input type="checkbox" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" ' . (get_post_meta($post->ID, $item['meta'], true) == 'on' ? 'checked' : ' ' ) . ( isset( $item['attributes'] ) ? $item['attributes'] : '') . '>';
+												echo '<input style="width: 100%" type="checkbox" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" ' . (get_post_meta($post->ID, $item['meta'], true) == 'on' ? 'checked' : ' ' ) . ( isset( $item['attributes'] ) ? $item['attributes'] : '') . '>';
 												break;
 											}
 											default: {
-												echo '<input type="' . (isset($item['type']) ? $item['type'] : 'text')  . '" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" value="' . get_post_meta($post->ID, $item['meta'], true) . '" ' . ( isset( $item['attributes'] ) ? $item['attributes'] : '') . '>';
+												echo '<input style="width: 100%" type="' . (isset($item['type']) ? $item['type'] : 'text')  . '" name="' . sanitize_title($item['label'] ) . '" id="' . sanitize_title($item['label']) . '" value="' . get_post_meta($post->ID, $item['meta'], true) . '" ' . ( isset( $item['attributes'] ) ? $item['attributes'] : '') . '>';
 												break;
 											}
 										}
